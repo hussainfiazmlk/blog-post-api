@@ -17,8 +17,19 @@ const connection = new Sequelize(db, user, password, {
   dialect,
 });
 
+const User = connection.define("User", {
+  uuid: {
+    type: Sequelize.UUID,
+    primaryKey: true,
+    defaultValue: Sequelize.UUIDV4,
+  },
+  name: Sequelize.STRING,
+  bio: Sequelize.TEXT,
+});
+
 try {
-  connection.authenticate();
+  await connection.sync({ logging: console.log, force: true });
+  await User.create({ name: "Bob", bio: "New bio entry 2" });
   console.log("Successfully connected to the database");
 } catch (err) {
   console.error("Unable to connect to the database:", err);
