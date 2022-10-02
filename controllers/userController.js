@@ -14,7 +14,7 @@ import User from "../models/userModel.js";
 // Create new users
 export const createUser = async (req, res) => {
   try {
-    const newUser = await User.create(req.body.user);
+    const newUser = await User.create(req.body);
     res.status(201).json(newUser);
   } catch (error) {
     res.status(404).send(error);
@@ -25,7 +25,7 @@ export const createUser = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll(); // { where: { firstname: [Op.like]: "D%"}}
-    res.status(200).json(users);
+    res.status(200).json({ totalUsers: users.length, data: users });
   } catch (error) {
     res.status(404).send(error);
   }
