@@ -27,7 +27,7 @@ const connection = new Sequelize(db, user, password, {
 const User = connection.define(
   "Users",
   {
-    uuid: {
+    id: {
       type: Sequelize.UUID,
       primaryKey: true,
       defaultValue: Sequelize.UUIDV4,
@@ -57,6 +57,16 @@ const User = connection.define(
     },
   }
 );
+
+const Post = connection.define("Posts", {
+  id: {
+    type: Sequelize.UUID,
+    primaryKey: true,
+    defaultValue: Sequelize.UUIDV4,
+  },
+  title: Sequelize.STRING,
+  content: Sequelize.TEXT,
+});
 
 // app.get("/", async (req, res) => {
 //   try {
@@ -108,10 +118,10 @@ app.get("/users/:id", async (req, res) => {
 app.put("/users/:id", async (req, res) => {
   try {
     const user = await User.update(req.body, {
-      where: { uuid: req.params.id },
+      where: { id: req.params.id },
     });
 
-    res.status(200).json({ msg: "user updated successfully" });
+    res.status(200).json({ msg: "user updated successfully", data: user });
   } catch (error) {
     res.status(404).send(error);
   }
@@ -120,15 +130,38 @@ app.put("/users/:id", async (req, res) => {
 // delete user
 app.delete("/users/:id", async (req, res) => {
   try {
-    await User.destroy({ where: { uuid: req.params.id } });
+    await User.destroy({ where: { id: req.params.id } });
     res.status(200).send({ msg: "user successfully deleted!!" });
   } catch (error) {
     res.status(404).send(error);
   }
 });
 
+// Create new Post
+app.post("/posts", async (req, res) => {
+  try {
+    const newPost = await Post.create(req.body);
+    res.status(201).json(newPost);
+  } catch (error) {
+    res.status(404).send(error);
+  }
+});
+
+// Get all posts
+app.get("/posts", async (req, res) => {
+  try {
+    const posts = await Post.findAll({
+      include: [{ model: User, as: "user" }],
+    });
+    res.status(200).send(posts);
+  } catch (error) {
+    res.status(404).send(error);
+  }
+});
+
+Post.belongsTo(User, { as: "user", foreignKey: "userId" }); // puts foreignKey UserId in Post table
 try {
-  await connection.sync(); // { logging: console.log, force: true }
+  await connection.sync(); // { force: true }
   console.log("Successfully connected to the database");
 } catch (err) {
   console.error("Unable to connect to the database:", err);
